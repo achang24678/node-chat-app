@@ -15,14 +15,14 @@ app.use(express.static(publicPath));  //configure our middleware
 io.on('connection', (socket) => {
   console.log('New user connected');
 
-  socket.emit('newMessage', { //emitted by the server and listened to on the client
-    from: 'John',
-    text: 'See you then',
-    createdAt: 123123
-  });
-
   socket.on('createMessage', (message) => {    //listener, listen for event and fire back
     console.log('createMessage', message);
+    //io.emit emits an event to every single connection here (when we get one user creating message and send to server, server sends back to all connections of this server)
+    io.emit('newMessage', {
+      from: message.from,
+      text: message.text,
+      createdAt: new Date().getTime()
+    });
   });
 
   socket.on('disconnect', () => {
