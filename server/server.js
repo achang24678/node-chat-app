@@ -24,10 +24,12 @@ io.on('connection', (socket) => {
   // user who log on to the chat app won't see this block of message, but other who already logged on will see new user joined
   socket.broadcast.emit('newMessage', generateMessage('Admin', 'New user joined'));
 
-  socket.on('createMessage', (message) => {    //listener, listen for event and fire back
+
+  socket.on('createMessage', (message, callback) => {    //listener, listen for event typed, emitted from the client on the localhost
     console.log('createMessage', message);
     //io.emit emits an event to every single connection here (when we get one user creating message and send to server, server sends back to all connections of this server)
     io.emit('newMessage', generateMessage(message.from, message.text));
+    callback('This is from the server');   //gets the callback - console.log('Got it', data);
 
     //this lets the socket IO library know which user shouldn't get the event (send to everybody but this socket, user who fire out the message won't see the message like welcome Allen)
     // socket.broadcast.emit('newMessage', {
