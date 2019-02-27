@@ -3,7 +3,7 @@ const http = require('http');   // it's a built in node module, no need to insta
 const express = require('express');
 const socketIO = require('socket.io');
 
-var {generateMessage} = require('./utils/message');
+var {generateMessage, generateLocationMessage} = require('./utils/message');
 const publicPath = path.join(__dirname, '../public');
 const port = process.env.PORT || 3000;
 var app = express();  //create new express app
@@ -29,7 +29,7 @@ io.on('connection', (socket) => {
     console.log('createMessage', message);
     //io.emit emits an event to every single connection here (when we get one user creating message and send to server, server sends back to all connections of this server)
     io.emit('newMessage', generateMessage(message.from, message.text));
-    callback('This is from the server');   //gets the callback - console.log('Got it', data);
+    callback('This is from the server');
 
     //this lets the socket IO library know which user shouldn't get the event (send to everybody but this socket, user who fire out the message won't see the message like welcome Allen)
     // socket.broadcast.emit('newMessage', {
@@ -37,6 +37,10 @@ io.on('connection', (socket) => {
     //   text: message.text,
     //   createdAt: new Date().getTime()
     // });
+  });
+
+  socket.on('createLocationMessage', (coords) => {
+    io.emit('newLocationMessage', generateLocationMessage('Admin', coords.latitude, coords.longitude));
   });
 
   socket.on('disconnect', () => {

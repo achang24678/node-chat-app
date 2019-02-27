@@ -11,11 +11,15 @@
 <!-- orderlist - this list let us add items to it and those items are gonna be the individual messages -->
   <ol id="messages"></ol>
 
-
+<!-- create user input field with id: "message-form" -->
   <form id="message-form">
     <input type="text" name="message" placeholder="Message goes here"/>
     <button>Send</button>
   </form>
+
+
+  <button id="send-location">Send Location</button>   <!-- new button for user to click it to send the locaiton -->
+
 <!-- load in library -->
   <script src="/socket.io/socket.io.js"></script>
   <script src="/js/libs/jquery-3.3.1.min.js"></script>
