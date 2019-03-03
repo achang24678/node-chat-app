@@ -1,5 +1,23 @@
 var socket = io();
 
+
+function scrollToBottom () {
+  // Selectors
+  var messages = jQuery('#messages');
+  var newMessage = messages.children('li:last-child');    // last item in the list
+  // Heights
+  var clientHeight = messages.prop('clientHeight');
+  var scrollTop = messages.prop('scrollTop');
+  var scrollHeight = messages.prop('scrollHeight');
+  var newMessageHeight = newMessage.innerHeight();
+  var lastMessageHeight = newMessage.prev().innerHeight();  // move to previous child
+
+  if(clientHeight + scrollTop + newMessageHeight + lastMessageHeight >= scrollHeight) {
+    messages.scrollTop(scrollHeight);
+
+  }
+}
+
 socket.on('connect', function () {
   console.log('Connected to server');
 });
@@ -19,6 +37,7 @@ socket.on('newMessage', function (message){   //event was emitted from the serve
     createdAt: formattedTime
   });
   jQuery('#messages').append(html);
+  scrollToBottom();
   // console.log('new message', message);
   // var li = jQuery('<li></li>');               //formatting the message other user sends in and put on main chat
   // li.text(`${message.from} ${formattedTime}: ${message.text}`);     //formatting the message other user sends in
@@ -45,8 +64,7 @@ socket.on('newLocationMessage', function (message) {
   });
 
   jQuery('#messages').append(html);
-
-
+  scrollToBottom();
   // var li = jQuery('<li></li>');               //list tag, showing each user with message
   // var a = jQuery('<a target="_blank">My current location</a>');   //anchor tag = link tag / with target set to _blank, we open up new tab when click on this link
 
