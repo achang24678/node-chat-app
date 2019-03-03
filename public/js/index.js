@@ -11,13 +11,19 @@ socket.on('disconnect', function () {
 
 //listen to custom events
 socket.on('newMessage', function (message){   //event was emitted from the server to the client, this listener listened to on the client
-
   var formattedTime = moment(message.createdAt).format('h:mm a');
-  console.log('new message', message);
-  var li = jQuery('<li></li>');               //formatting the message other user sends in and put on main chat
-  li.text(`${message.from} ${formattedTime}: ${message.text}`);     //formatting the message other user sends in
-
-  jQuery('#messages').append(li);     //put in the list (var li) - if there are already 3 items in the list, it gon be 4th one
+  var template = jQuery('#message-template').html();    //use jquery call the id property then .html method which gon return the markup inside of message template
+  var html = Mustache.render(template, {
+    text: message.text,
+    from: message.from,
+    createdAt: formattedTime
+  });
+  jQuery('#messages').append(html);
+  // console.log('new message', message);
+  // var li = jQuery('<li></li>');               //formatting the message other user sends in and put on main chat
+  // li.text(`${message.from} ${formattedTime}: ${message.text}`);     //formatting the message other user sends in
+  //
+  // jQuery('#messages').append(li);     //put in the list (var li) - if there are already 3 items in the list, it gon be 4th one
 });
 
 // socket.emit('createMessage', {      //send from client to the server, and send back a callback function that shows up on server letting us kno the case was sucessful
@@ -30,14 +36,24 @@ socket.on('newMessage', function (message){   //event was emitted from the serve
 
 //fetch coordinates and url info generated from ./message - generateLocationMessage function,
 socket.on('newLocationMessage', function (message) {
-  var li = jQuery('<li></li>');               //list tag, showing each user with message
-  var a = jQuery('<a target="_blank">My current location</a>');   //anchor tag = link tag / with target set to _blank, we open up new tab when click on this link
   var formattedTime = moment(message.createdAt).format('h:mm a');
+  var template = jQuery('#location-message-template').html();
+  var html = Mustache.render(template, {
+    from: message.from,
+    url: message.url,
+    createdAt: formattedTime
+  });
 
-  li.text(`${message.from}: ${formattedTime}: `);
-  a.attr('href', message.url);
-  li.append(a);
-  jQuery('#messages').append(li);
+  jQuery('#messages').append(html);
+
+
+  // var li = jQuery('<li></li>');               //list tag, showing each user with message
+  // var a = jQuery('<a target="_blank">My current location</a>');   //anchor tag = link tag / with target set to _blank, we open up new tab when click on this link
+
+  // li.text(`${message.from}: ${formattedTime}: `);
+  // a.attr('href', message.url);
+  // li.append(a);
+  // jQuery('#messages').append(li);
 });
 
 
