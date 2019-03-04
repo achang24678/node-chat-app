@@ -43,9 +43,13 @@ io.on('connection', (socket) => {
 
 
   socket.on('createMessage', (message, callback) => {    //listener, listen for event typed, emitted from the client on the localhost
-    console.log('createMessage', message);
-    //io.emit emits an event to every single connection here (when we get one user creating message and send to server, server sends back to all connections of this server)
-    io.emit('newMessage', generateMessage(message.from, message.text));
+    var user = users.getUser(socket.id);
+
+    if (user && isRealString(message.text)) {
+      //io.emit emits an event to every single connection here (when we get one user creating message and send to server, server sends back to all connections of this server)
+      io.to(user.room).emit('newMessage', generateMessage(user.name, message.text));
+    }
+
     callback();
 
     //this lets the socket IO library know which user shouldn't get the event (send to everybody but this socket, user who fire out the message won't see the message like welcome Allen)
@@ -57,7 +61,12 @@ io.on('connection', (socket) => {
   });
 
   socket.on('createLocationMessage', (coords) => {
-    io.emit('newLocationMessage', generateLocationMessage('Admin', coords.latitude, coords.longitude));
+    var user = users.getUser(socket.id);
+    if (user) {
+      //io.emit emits an event to every single connection here (when we get one user creating message and send to server, server sends back to all connections of this server)
+      io.to(user.room).emit('newLocationMessage', generateLocationMessage(user.name, coords.latitude, coords.longitude));
+    }
+
   });
 
   socket.on('disconnect', () => {

@@ -100,7 +100,6 @@ jQuery('#message-form').on('submit', function (event) {
   var messageTextbox = jQuery('[name=message]'); //store user input in var messageTextbox
 
   socket.emit('createMessage', {      // once we get the user input data, we then emit the value
-    from: 'User',
     text: messageTextbox.val()    //user input value
   }, function () {
     messageTextbox.val('');   //clear text field after message was sent
