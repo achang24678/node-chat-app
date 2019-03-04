@@ -3,13 +3,16 @@ const http = require('http');   // it's a built in node module, no need to insta
 const express = require('express');
 const socketIO = require('socket.io');
 
-var {generateMessage, generateLocationMessage} = require('./utils/message');
+
+const {generateMessage, generateLocationMessage} = require('./utils/message');
+const {isRealString} = require('./utils/validation');
+const {Users} = require('./utils/users');
 const publicPath = path.join(__dirname, '../public');
 const port = process.env.PORT || 3000;
 var app = express();  //create new express app
 var server = http.createServer(app);
 var io = socketIO(server);  // we get our web sockets server on here we can emitting or listening to events (communicate between server and client)
-
+var users = new Users();
 
 
 app.use(express.static(publicPath));  //configure our middleware
@@ -18,11 +21,25 @@ app.use(express.static(publicPath));  //configure our middleware
 io.on('connection', (socket) => {
   console.log('New user connected');
 
-// when user logon to the server, they gonna see this message first
-  socket.emit('newMessage', generateMessage('Admin', 'Welcome to the chat app'));
 
-  // user who log on to the chat app won't see this block of message, but other who already logged on will see new user joined
-  socket.broadcast.emit('newMessage', generateMessage('Admin', 'New user joined'));
+  socket.on('join', (params, callback) => {
+    if(!isRealString(params.name) || !isRealString(params.room)){
+      return callback('Name and room name are required.');
+    }
+
+      socket.join(params.room);
+      users.removeUser(socket.id);
+      users.addUser(socket.id, params.name, params.room);
+
+      io.to(params.room).emit('updateUserList', users.getUserList(params.room));
+
+      // when user logon to the server, they gonna see this message first
+      socket.emit('newMessage', generateMessage('Admin', 'Welcome to the chat app'));
+      // user who log on to the chat app won't see this block of message, but other who already logged on will see new user joined
+      socket.broadcast.to(params.room).emit('newMessage', generateMessage('Admin', `${params.name} has joined.`));
+
+    callback();
+  });
 
 
   socket.on('createMessage', (message, callback) => {    //listener, listen for event typed, emitted from the client on the localhost
@@ -44,7 +61,12 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
-    console.log('User was disconnected');
+    var user = users.removeUser(socket.id);
+
+    if (user) {
+      io.to(user.room).emit('updateUserList', users.getUserList(user.room));
+      io.to(user.room).emit('newMessage', generateMessage('Admin', `${user.name} has left.`));
+    }
   });
 });
 
